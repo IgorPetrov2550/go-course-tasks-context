@@ -69,22 +69,39 @@ import (
 //       }
 //   }
 
+func worker(ctx context.Context, id int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		select {
+		case <-ctx.Done():
+			fmt.Printf("воркер %d: получил сигнал остановки, причина: %v\n", id, ctx.Err())
+			return
+			// завершиться
+		case <-time.After(400 * time.Millisecond):
+			fmt.Printf("воркер %d: работаю...\n", id)
+			// работать
+		}
+	}
+}
+
 func main() {
 	// TODO: создай контекст с отменой
-	// ctx, cancel := context.WithCancel(context.Background())
-	// defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// TODO: объяви WaitGroup локально
 	var wg sync.WaitGroup
 
 	// TODO: запусти 3 воркера
-
+	for i := 1; i <= 3; i++ {
+		wg.Add(1)
+		go worker(ctx, i, &wg)
+	}
 	// TODO: подожди 1.2 секунды, потом cancel()
-
+	time.Sleep(1200 * time.Millisecond)
+	cancel()
 	// TODO: wg.Wait() и выведи "все воркеры остановлены"
+	wg.Wait()
 
-	_ = context.Background
-	_ = fmt.Println
-	_ = time.Sleep
-	_ = wg // убери когда начнёшь использовать
+	fmt.Println("все воркеры остановлены")
 }
