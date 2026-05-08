@@ -66,9 +66,9 @@ func handleRequest(ctx context.Context, name string, delay time.Duration) {
 	defer cansel()
 	select {
 	case <-time.After(1 * time.Second):
-		fmt.Printf("%d : запрос выполнен\n", name)
+		fmt.Printf("%s : запрос выполнен\n", name)
 	case <-reqCtx.Done():
-		fmt.Printf("%d : таймаут запроса (%v)\n", name, reqCtx.Err())
+		fmt.Printf("%s : таймаут запроса (%v)\n", name, reqCtx.Err())
 	}
 }
 
