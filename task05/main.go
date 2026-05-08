@@ -61,24 +61,45 @@ import (
 
 // TODO: напиши функцию handleRequest(ctx context.Context, name string, delay time.Duration)
 
+func handleRequest(ctx context.Context, name string, delay time.Duration) {
+	reqCtx, cansel := context.WithTimeout(ctx, delay)
+	defer cansel()
+	select {
+	case <-time.After(1 * time.Second):
+		fmt.Printf("%d : запрос выполнен\n", name)
+	case <-reqCtx.Done():
+		fmt.Printf("%d : таймаут запроса (%v)\n", name, reqCtx.Err())
+	}
+}
+
 func main() {
 	// TODO: создай appCtx с отменой
 	// appCtx, appCancel := context.WithCancel(context.Background())
-
+	appCtx, appCancel := context.WithCancel(context.Background())
 	// TODO: создай WaitGroup локально
 	var wg sync.WaitGroup
 
 	// TODO: запусти два запроса в горутинах
 	// go func() { wg.Add(1) ... handleRequest(appCtx, "запрос-1", 500*time.Millisecond) }()
 	// go func() { wg.Add(1) ... handleRequest(appCtx, "запрос-2", 2*time.Second) }()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		handleRequest(appCtx, "запрос-1", 500*time.Millisecond)
+	}()
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		handleRequest(appCtx, "запрос-2", 2*time.Second)
+	}()
 	// TODO: wg.Wait()
+	wg.Wait()
 	// TODO: выведи "оба запроса завершены, приложение продолжает работу"
+	fmt.Println("оба запроса завершены, приложение продолжает работу")
 	// TODO: appCancel()
+	appCancel()
 	// TODO: выведи "приложение завершено"
+	fmt.Println("приложение завершено")
 
-	_ = context.Background
-	_ = fmt.Println
-	_ = time.Second
-	_ = wg // убери когда начнёшь использовать
 }
